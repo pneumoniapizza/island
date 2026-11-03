@@ -16,6 +16,7 @@ Singleton {
     readonly property string font: ad.look.font
     readonly property string iconFont: ad.look.iconFont
     readonly property int topGap: ad.look.notch ? 0 : ad.look.topGap   // notch mode sits flush with the screen edge
+    readonly property int windowGap: ad.look.windowGap                 // extra px reserved under the island, on top of your compositor's own gap (can be negative)
     readonly property bool notch: ad.look.notch                        // attach the island to the top edge (flat top, round bottom)
     readonly property bool shadow: ad.look.shadow
     readonly property real shadowOpacity: ad.look.shadowOpacity        // 0 .. 1
@@ -137,11 +138,12 @@ Singleton {
                 property string font: "Inter"
                 property string iconFont: "Material Symbols Rounded"
                 property int topGap: 10
+                property int windowGap: 0
                 property bool notch: false
                 property bool shadow: true
-                property real shadowOpacity: 0.55
+                property real shadowOpacity: 1.0
                 property real shadowBlur: 1.0
-                property int shadowOffset: 10
+                property int shadowOffset: 0
                 property string shadowColor: "#000000"
                 property bool sliderAccent: true
             }

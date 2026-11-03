@@ -216,7 +216,7 @@ Every key is optional. On Nix use `programs.island.settings.<section>.<key>` ins
 
 | Section | Keys |
 |---|---|
-| `look` | `font`, `iconFont`, `topGap`, `notch` (attach to the top edge), `shadow`, `shadowOpacity`, `shadowBlur`, `shadowOffset`, `shadowColor`, `sliderAccent` |
+| `look` | `font`, `iconFont`, `topGap`, `windowGap` (extra space between the island and tiled windows, `0` = just your compositor gap), `notch` (attach to the top edge), `shadow`, `shadowOpacity`, `shadowBlur`, `shadowOffset`, `shadowColor`, `sliderAccent` |
 | `clock` | `timeFormat` (`"h:mm AP"` for 12 h), `dateFormat`, `shortDateFormat` (date next to the clock on the hover player) |
 | `pill` | `clockWithMedia` (keep the clock while media plays), `batteryIcon` (battery as an icon only, hidden without a battery) |
 | `behavior` | `hoverToExpand`, `hoverDelay`, `leaveDelay`, `mediaPeek`, `osdTimeout`, `notifTimeout`, `peekTimeout`, `ipcTimeout` |

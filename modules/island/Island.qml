@@ -52,9 +52,11 @@ PanelWindow {
     implicitWidth: Math.max(sizes.player.w, sizes.walls.w, sizes.center.w, sizes.power.w, sizes.launcher.w, sizes.clipboard.w, sizes.timer.w, sizes.emoji.w, sizes.calendar.w, sizes.tray.w) + 80
     implicitHeight: topGap + Math.max(sizes.center.h, sizes.walls.h, 70 + Config.launcherRows * 52 + 14, 70 + Config.clipboardRows * 52 + 14, 108 + Config.emojiRows * Math.floor((sizes.emoji.w - 32) / Config.emojiColumns) + 52, sizes.calendar.h, sizes.tray.h) + 56
     color: "transparent"
-    // reserve space for the idle pill only; expanded states float over windows
+    // reserve space for the idle pill only; expanded states float over windows.
+    // Your compositor adds its own window gap on top of this, so with windowGap = 0 the
+    // space between the pill and the first window equals the gap between windows.
     exclusionMode: ExclusionMode.Normal
-    exclusiveZone: topGap + sizes.idle.h + 8
+    exclusiveZone: Math.max(0, topGap + sizes.idle.h + Config.windowGap)
     // Top sits below fullscreen windows (the bar hides with them); Overlay only while something is actually showing
     WlrLayershell.layer: (expanded || (!fsActive && (osdOn || notifOn || peekOn || Countdown.ringing))) ? WlrLayer.Overlay : WlrLayer.Top
     WlrLayershell.namespace: "island"

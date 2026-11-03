@@ -64,6 +64,7 @@ rec {
         font = opt types.str "Inter" "UI font family.";
         iconFont = opt types.str "Material Symbols Rounded" "Icon font family.";
         topGap = opt types.int 10 "Pixels between the screen edge and the island (ignored when notch is on).";
+        windowGap = opt types.int 0 "Extra pixels reserved under the island, added to your compositor's own window gap (negative pulls windows up).";
         notch = opt types.bool false "Attach the island to the top of the screen like a notch: no gap, flat top corners.";
         shadow = opt types.bool true "Drop shadow under the island.";
         shadowOpacity = opt (types.numbers.between 0.0 1.0) 1.0 "Shadow strength, 0 to 1.";
