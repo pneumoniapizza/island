@@ -32,6 +32,7 @@ Singleton {
 
     // ---- pill (the small resting island) ----
     readonly property bool pillClockWithMedia: ad.pill.clockWithMedia  // keep the clock visible while media plays
+    readonly property bool pillExpandOnMedia: ad.pill.expandOnMedia    // widen the pill (cover art + equalizer) while media plays
     readonly property bool pillBatteryIcon: ad.pill.batteryIcon        // battery as an icon only (no number), skipped when there is no battery
 
     // ---- behaviour ----
@@ -154,6 +155,7 @@ Singleton {
             }
             property JsonObject pill: JsonObject {
                 property bool clockWithMedia: true
+                property bool expandOnMedia: true
                 property bool batteryIcon: true
             }
             property JsonObject behavior: JsonObject {

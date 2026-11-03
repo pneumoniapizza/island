@@ -16,7 +16,9 @@ Text {
     font.pixelSize: size
     // opsz follows the pixel size so strokes stay even from 16 px to 40 px
     font.variableAxes: ({ "FILL": filled ? 1 : 0, "wght": weight, "GRAD": 0, "opsz": Math.max(20, Math.min(48, size)) })
-    renderType: Text.QtRendering
+    // FreeType rasterisation fills overlapping glyph contours correctly; the distance-field
+    // renderer left filled icons (pause, skip) hollow / with stray inner lines.
+    renderType: Text.NativeRendering
     verticalAlignment: Text.AlignVCenter
     horizontalAlignment: Text.AlignHCenter
 }

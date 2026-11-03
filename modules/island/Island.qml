@@ -94,7 +94,7 @@ PanelWindow {
         if (expanded) return page === "center" ? "center" : page === "walls" ? "walls" : page === "tray" ? "tray" : (hasMedia ? "player" : (Countdown.active ? "timer" : "hub"))
         if (osdOn) return "osd"
         if (peekOn && hasMedia) return "peek"
-        if (mediaPlaying) return "media"
+        if (mediaPlaying && Config.pillExpandOnMedia) return "media"
         return "idle"
     }
 
@@ -202,13 +202,22 @@ PanelWindow {
     Timer { id: enterTimer; interval: Config.hoverDelay;  onTriggered: root.expanded = true }
     Timer { id: leaveTimer; interval: Config.leaveDelay;  onTriggered: if (!root.modal && !centerView.typing) root.expanded = false }
 
+    // Switching pages while the cursor is on the island can resize the pill (e.g. control center -> tray),
+    // dropping the cursor outside it. That is not the user leaving, so ignore hover loss until the
+    // resize settles; the pill then closes only after the cursor has entered it and left again.
+    property bool settling: false
+    Timer { id: settleTimer; interval: 900; onTriggered: root.settling = false }
+    onPageChanged: if (expanded && hoverRaw) { settling = true; settleTimer.restart() }
+
     // ---- IPC: open / toggle / close a page ----
     Timer { id: ipcTimer; interval: Config.ipcTimeout; onTriggered: if (!root.hoverRaw && !centerView.typing) root.expanded = false }
     function openPage(p) {
         if (["main", "center", "walls", "launcher", "clipboard", "power", "timer", "emoji", "calendar", "tray"].indexOf(p) < 0) p = "center"
         page = p
         expanded = true
-        if (modal) ipcTimer.stop(); else ipcTimer.restart()
+        // modal pages and the tray stay open until you use them: the tray has no timeout,
+        // it only closes once the cursor has entered it and left again (or via IPC / a click)
+        if (modal || p === "tray") ipcTimer.stop(); else ipcTimer.restart()
     }
     function closeIsland() { ipcTimer.stop(); expanded = false }
 
@@ -229,6 +238,41 @@ PanelWindow {
         repeat: true
         running: root.mode === "player" && root.mediaPlaying
         onTriggered: root.player.positionChanged()
+    }
+
+    // ======================= shadow =======================
+    // Drawn separately from the pill and kept off the very top row of the screen: the blur
+    // used to leave a thin dark line there. The shadow still fades out naturally above the pill.
+    Item {
+        id: shadowClip
+        visible: Config.shadow
+        x: 0
+        y: Math.min(pill.y, 1)
+        width: root.width
+        height: Math.max(0, root.height - y)
+        clip: true
+
+        ClippingRectangle {
+            x: pill.x
+            y: pill.y - shadowClip.y
+            width: pill.width
+            height: pill.height
+            radius: pill.radius
+            topLeftRadius: pill.topLeftRadius
+            topRightRadius: pill.topRightRadius
+            color: Theme.bg
+            transformOrigin: Item.Top
+            scale: pill.scale
+
+            layer.enabled: true
+            layer.effect: MultiEffect {
+                shadowEnabled: true
+                shadowColor: Config.shadowColor
+                shadowOpacity: Config.shadowOpacity
+                shadowBlur: Config.shadowBlur
+                shadowVerticalOffset: Config.shadowOffset
+            }
+        }
     }
 
     // ======================= the island =======================
@@ -257,15 +301,6 @@ PanelWindow {
         Behavior on height { SpringAnimation { spring: 4.4; damping: 0.46; epsilon: 0.15 } }
         Behavior on scale  { SpringAnimation { spring: 7.0; damping: 0.45; epsilon: 0.001 } }
 
-        layer.enabled: true
-        layer.effect: MultiEffect {
-            shadowEnabled: Config.shadow
-            shadowColor: Config.shadowColor
-            shadowOpacity: Config.shadowOpacity
-            shadowBlur: Config.shadowBlur
-            shadowVerticalOffset: Config.shadowOffset
-        }
-
         HoverHandler {
             onHoveredChanged: {
                 root.hoverRaw = hovered
@@ -273,7 +308,7 @@ PanelWindow {
                     leaveTimer.stop(); if (Config.hoverToExpand) enterTimer.restart()
                     if (root.notifOn) notifTimer.stop()
                 } else {
-                    enterTimer.stop(); leaveTimer.restart()
+                    enterTimer.stop(); if (!root.settling) leaveTimer.restart()
                     if (root.notifOn) notifTimer.restart()
                 }
             }
