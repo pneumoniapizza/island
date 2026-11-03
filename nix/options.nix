@@ -80,7 +80,7 @@ rec {
       };
       pill = {
         clockWithMedia = opt types.bool true "Keep showing the clock in the pill while media is playing.";
-        expandOnMedia = opt types.bool false "Widen the pill (cover art and equalizer) while media is playing.";
+        expandOnMedia = opt types.bool true "Widen the pill (cover art and equalizer) while media is playing.";
         batteryIcon = opt types.bool false "Show the battery as an icon only (no percentage) in the pill. Hidden when there is no battery.";
       };
       behavior = {
