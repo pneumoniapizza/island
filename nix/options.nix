@@ -66,9 +66,9 @@ rec {
         topGap = opt types.int 10 "Pixels between the screen edge and the island (ignored when notch is on).";
         notch = opt types.bool false "Attach the island to the top of the screen like a notch: no gap, flat top corners.";
         shadow = opt types.bool true "Drop shadow under the island.";
-        shadowOpacity = opt (types.numbers.between 0.0 1.0) 0.55 "Shadow strength, 0 to 1.";
+        shadowOpacity = opt (types.numbers.between 0.0 1.0) 1.0 "Shadow strength, 0 to 1.";
         shadowBlur = opt (types.numbers.between 0.0 1.0) 1.0 "Shadow softness, 0 (hard) to 1 (very soft).";
-        shadowOffset = opt types.int 10 "Pixels the shadow drops below the island.";
+        shadowOffset = opt types.int 0 "Pixels the shadow drops below the island.";
         shadowColor = opt types.str "#000000" "Shadow colour.";
         sliderAccent = opt types.bool true "Control-center sliders use the accent colour (false = neutral).";
       };
