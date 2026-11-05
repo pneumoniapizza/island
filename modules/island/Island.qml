@@ -27,11 +27,7 @@ PanelWindow {
         hub:    { w: 360, h: 112 },
         timer:  { w: 390, h: 142 },
         player: { w: 460, h: 192 },
-<<<<<<< HEAD
-        center: { w: 460, h: 420 },
-=======
         center: { w: 460, h: 508 },
->>>>>>> ee3c612 (notification center restyled)
         power:  { w: 560, h: 140 },
         // pages that size themselves
         walls:     { w: wallpaperView.wantW, h: wallpaperView.wantH },

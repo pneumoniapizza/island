@@ -27,11 +27,7 @@ island/
 ├── services/               state + system access, no UI: Apps, Clip, Clock, Controls,
 │                           Media, Notifs, Osd, Power, Ui, Wallpapers, Emoji, EmojiData
 ├── components/             reusable bits: Txt, Icon, IconButton, Toggle, VSlider,
-<<<<<<< HEAD
-│                           Marquee, Art, Equalizer, View, PillToggle, HSlider, Battery, Tile, LineSlider, VSlider
-=======
 │                           Marquee, Art, Equalizer, View, PillToggle, HSlider, Battery, Tile, LineSlider, VSlider, NotifItem
->>>>>>> ee3c612 (notification center restyled)
 ├── modules/island/
 │   ├── Island.qml          the window: state, timers, the morphing pill
 │   └── views/              one file per thing the pill can show:
