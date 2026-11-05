@@ -497,6 +497,113 @@ View {
                     view.island.closeIsland()
                 }
             }
+        }
+
+        VSlider {
+            id: volSlider
+            x: parent.width - 150; y: 54
+            width: 70; height: 210
+            icon: Controls.volumeIcon
+            value: Controls.volume
+            dimmed: Controls.muted
+            iconAction: true
+            onMoved: v => Controls.setVolume(v)
+            onIconClicked: Controls.toggleMute()
+        }
+        VSlider {
+            id: briSlider
+            x: parent.width - 70; y: 54
+            width: 70; height: 210
+            icon: "light_mode"
+            value: Controls.brightness
+            onMoved: v => Controls.setBrightness(v)
+        }
+
+        // ---- notifications: header + scrollable list of cards ----
+        Txt { x: 2; y: 282; text: "Notifications"; font.pixelSize: 13; font.weight: Font.DemiBold }
+        Item {
+            x: parent.width - width; y: 278
+            visible: Notifs.history.length > 0
+            width: clearRow.implicitWidth + 16; height: 26
+            Row {
+                id: clearRow
+                anchors.centerIn: parent
+                spacing: 4
+                Icon { anchors.verticalCenter: parent.verticalCenter; name: "clear_all"; size: 16; color: clearMa.containsMouse ? Theme.fg : Theme.fgDim }
+                Txt { anchors.verticalCenter: parent.verticalCenter; text: "Clear all"; font.pixelSize: 11; font.weight: Font.Medium; color: clearMa.containsMouse ? Theme.fg : Theme.fgDim }
+            }
+            MouseArea {
+                id: clearMa
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: Notifs.clearHistory()
+            }
+        }
+
+        Column {
+            x: 0; y: 318
+            width: parent.width
+            spacing: 8
+            visible: Notifs.history.length === 0
+            opacity: visible ? 1 : 0
+            Icon { anchors.horizontalCenter: parent.horizontalCenter; name: "notifications_none"; size: 30; color: Theme.fgDim; opacity: 0.6 }
+            Txt { anchors.horizontalCenter: parent.horizontalCenter; text: "You're all caught up"; font.pixelSize: 12; color: Theme.fgDim; opacity: 0.8 }
+        }
+
+        ListView {
+            id: notifList
+            x: 0; y: 312
+            width: parent.width
+            height: view.height - 14 - y
+            clip: true
+            spacing: 0
+            boundsBehavior: Flickable.StopAtBounds
+            flickableDirection: Flickable.VerticalFlick
+            model: ScriptModel { values: Notifs.history; objectProp: "nid" }
+
+            HoverHandler { id: listHover }
+
+            // smooth wheel scrolling (the island's own wheel handler must not eat it)
+            NumberAnimation { id: scrollAnim; target: notifList; property: "contentY"; duration: 170; easing.type: Easing.OutCubic }
+            WheelHandler {
+                enabled: notifList.contentHeight > notifList.height + 1
+                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                onWheel: e => {
+                    const max = Math.max(0, notifList.contentHeight - notifList.height)
+                    const base = scrollAnim.running ? scrollAnim.to : notifList.contentY
+                    scrollAnim.stop()
+                    scrollAnim.from = notifList.contentY
+                    scrollAnim.to = Math.max(0, Math.min(max, base - e.angleDelta.y * 0.6))
+                    scrollAnim.start()
+                }
+            }
+
+            add: Transition {
+                ParallelAnimation {
+                    NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 240 }
+                    NumberAnimation { property: "scale"; from: 0.9; to: 1; duration: 300; easing.type: Easing.OutBack }
+                }
+            }
+            remove: Transition {
+                ParallelAnimation {
+                    NumberAnimation { property: "opacity"; to: 0; duration: 170 }
+                    NumberAnimation { property: "scale"; to: 0.92; duration: 170 }
+                }
+            }
+            displaced: Transition { NumberAnimation { property: "y"; duration: 260; easing.type: Easing.OutCubic } }
+
+            delegate: NotifItem {
+                width: notifList.width - (notifList.contentHeight > notifList.height + 1 ? 8 : 0)
+                now: view.now
+                onDismissed: Notifs.dismissId(modelData.nid)
+                onInvoked: id => {
+                    Notifs.invoke(modelData.nid, id)
+                    Notifs.dismissId(modelData.nid)
+                    view.island.closeIsland()
+                }
+            }
+
             // slim scroll indicator
             Rectangle {
                 readonly property real range: Math.max(1, notifList.contentHeight - notifList.height)
