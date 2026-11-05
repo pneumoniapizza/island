@@ -291,7 +291,8 @@ PanelWindow {
         topLeftRadius: Config.notch ? 0 : radius
         topRightRadius: Config.notch ? 0 : radius
         color: Theme.bg
-        border.width: 0
+        border.width: Theme.light ? 1 : 0     // thin edge so a light pill doesn't vanish on light windows
+        border.color: Theme.outline
 
         transformOrigin: Item.Top
         scale: anticipating ? 1.07 : 1.0
