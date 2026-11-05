@@ -31,6 +31,16 @@ Singleton {
     readonly property color card: Qt.tint(surfaceHi, Qt.rgba(primary.r, primary.g, primary.b, 0.16))
     readonly property color cardHi: Qt.tint(surfaceHiest, Qt.rgba(primary.r, primary.g, primary.b, 0.26))
 
+    // extra accents: the matugen primary with its hue rotated, so multi-colour widgets
+    // (e.g. the system monitor) stay in the wallpaper's palette instead of using fixed colours
+    function hueShift(c, d) {
+        const h = c.hslHue < 0 ? 0 : c.hslHue
+        return Qt.hsla(((h + d) % 1 + 1) % 1, c.hslSaturation, c.hslLightness, 1)
+    }
+    readonly property color tint2: hueShift(primary, 0.11)
+    readonly property color tint3: hueShift(primary, 0.22)
+    readonly property color tint4: hueShift(primary, -0.11)
+
     readonly property string font: Config.font
     readonly property string iconFont: Config.iconFont
 

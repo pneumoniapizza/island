@@ -113,6 +113,11 @@ Singleton {
     readonly property int calendarFirstDay: ad.calendar.firstDay        // 0 = Sunday, 1 = Monday ...
     readonly property bool calendarWeekNumbers: ad.calendar.weekNumbers
 
+    // ---- system monitor ----
+    readonly property int sysmonInterval: ad.sysmon.interval            // ms between CPU / memory / network samples
+    readonly property int sysmonProcesses: ad.sysmon.processes          // rows in the top-processes list (0 hides it)
+    readonly property bool sysmonColors: ad.sysmon.colors               // per-metric accents (hue-shifted from the matugen primary); false = primary everywhere
+
     // ---- system tray ----
     readonly property int trayColumns: ad.tray.columns
     readonly property bool trayHidePassive: ad.tray.hidePassive
@@ -226,6 +231,11 @@ Singleton {
             property JsonObject calendar: JsonObject {
                 property int firstDay: 1
                 property bool weekNumbers: false
+            }
+            property JsonObject sysmon: JsonObject {
+                property int interval: 1500
+                property int processes: 5
+                property bool colors: true
             }
             property JsonObject tray: JsonObject {
                 property int columns: 6

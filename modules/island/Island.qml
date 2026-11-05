@@ -35,7 +35,8 @@ PanelWindow {
         clipboard: { w: clipboardView.wantW, h: clipboardView.wantH },
         emoji:     { w: emojiView.wantW,     h: emojiView.wantH },
         calendar:  { w: calendarView.wantW,  h: calendarView.wantH },
-        tray:      { w: trayView.wantW,      h: trayView.wantH }
+        tray:      { w: trayView.wantW,      h: trayView.wantH },
+        sysmon:    { w: sysView.wantW,       h: sysView.wantH }
     })
 
     // shared cover art: ONE item that morphs between layouts
@@ -49,8 +50,8 @@ PanelWindow {
 
     // ---- window ----
     anchors.top: true
-    implicitWidth: Math.max(sizes.player.w, sizes.walls.w, sizes.center.w, sizes.power.w, sizes.launcher.w, sizes.clipboard.w, sizes.timer.w, sizes.emoji.w, sizes.calendar.w, sizes.tray.w) + 80
-    implicitHeight: topGap + Math.max(sizes.center.h, sizes.walls.h, 70 + Config.launcherRows * 52 + 14, 70 + Config.clipboardRows * 52 + 14, 108 + Config.emojiRows * Math.floor((sizes.emoji.w - 32) / Config.emojiColumns) + 52, sizes.calendar.h, sizes.tray.h) + 56
+    implicitWidth: Math.max(sizes.player.w, sizes.walls.w, sizes.center.w, sizes.power.w, sizes.launcher.w, sizes.clipboard.w, sizes.timer.w, sizes.emoji.w, sizes.calendar.w, sizes.tray.w, sizes.sysmon.w) + 80
+    implicitHeight: topGap + Math.max(sizes.center.h, sizes.walls.h, 70 + Config.launcherRows * 52 + 14, 70 + Config.clipboardRows * 52 + 14, 108 + Config.emojiRows * Math.floor((sizes.emoji.w - 32) / Config.emojiColumns) + 52, sizes.calendar.h, sizes.tray.h, sizes.sysmon.h) + 56
     color: "transparent"
     // reserve space for the idle pill only; expanded states float over windows.
     // Your compositor adds its own window gap on top of this, so with windowGap = 0 the
@@ -60,7 +61,7 @@ PanelWindow {
     // Top sits below fullscreen windows (the bar hides with them); Overlay only while something is actually showing
     WlrLayershell.layer: (expanded || (!fsActive && (osdOn || notifOn || peekOn || Countdown.ringing))) ? WlrLayer.Overlay : WlrLayer.Top
     WlrLayershell.namespace: "island"
-    WlrLayershell.keyboardFocus: (root.mode === "launcher" || root.mode === "walls" || root.mode === "clipboard" || root.mode === "power" || root.mode === "timer" || root.mode === "emoji" || root.mode === "calendar" || centerView.typing) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: (root.mode === "launcher" || root.mode === "walls" || root.mode === "clipboard" || root.mode === "power" || root.mode === "timer" || root.mode === "emoji" || root.mode === "calendar" || root.mode === "sysmon" || centerView.typing) ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
     mask: Region { item: pill }
 
     // ---- state ----
@@ -72,13 +73,13 @@ PanelWindow {
     // focused window is fullscreen: no automatic popups (peek, OSD, notifications, timer ring); only user-opened pages show
     readonly property bool fsActive: ToplevelManager.activeToplevel !== null && ToplevelManager.activeToplevel !== undefined && ToplevelManager.activeToplevel.fullscreen
     onFsActiveChanged: if (fsActive) { peekOn = false; peekTimer.stop(); osdOn = false; osdTimer.stop(); notifOn = false; notifTimer.stop() }
-    property string page: "main"   // main | center | walls | launcher | clipboard | power | timer | emoji | calendar | tray
+    property string page: "main"   // main | center | walls | launcher | clipboard | power | timer | emoji | calendar | tray | sysmon
     // launcher, wallpaper, clipboard, power and timer pages grab the keyboard and stay open until closed
-    readonly property bool modal: page === "launcher" || page === "walls" || page === "clipboard" || page === "power" || page === "timer" || page === "emoji" || page === "calendar"
+    readonly property bool modal: page === "launcher" || page === "walls" || page === "clipboard" || page === "power" || page === "timer" || page === "emoji" || page === "calendar" || page === "sysmon"
 
     // directional transition state between sibling expanded pages (-1 = left, 0 = vertical, 1 = right)
     readonly property var modeSlots: ({
-        launcher: 1, clipboard: 2, emoji: 3, calendar: 4, timer: 5, hub: 6, player: 6, tray: 7, center: 8, walls: 9, power: 10
+        launcher: 1, clipboard: 2, emoji: 3, calendar: 4, timer: 5, hub: 6, player: 6, tray: 7, center: 8, walls: 9, power: 10, sysmon: 11
     })
     property int _lastSlot: 0
     property int navDir: 0
@@ -89,6 +90,7 @@ PanelWindow {
         if (expanded && page === "timer") return "timer"
         if (expanded && page === "emoji") return "emoji"
         if (expanded && page === "calendar") return "calendar"
+        if (expanded && page === "sysmon") return "sysmon"
         if (Countdown.ringing && !fsActive) return "timer"
         if (notifOn) return "notif"
         if (expanded) return page === "center" ? "center" : page === "walls" ? "walls" : page === "tray" ? "tray" : (hasMedia ? "player" : (Countdown.active ? "timer" : "hub"))
@@ -180,11 +182,12 @@ PanelWindow {
         if (mode === "timer") timerView.shown()
         if (mode === "emoji") emojiView.shown()
         if (mode === "calendar") calendarView.shown()
+        if (mode === "sysmon") sysView.shown()
         if (mode === "tray") trayView.shown()
         if (mode !== "player") { scrubbing = false; holdSeek = false }
     }
 
-    Connections { target: Osd;    function onTriggered()    { if (!root.fsActive && root.mode !== "center" && root.mode !== "walls" && root.mode !== "launcher" && root.mode !== "clipboard" && root.mode !== "power" && root.mode !== "timer" && root.mode !== "emoji" && root.mode !== "calendar") { root.osdOn = true; osdTimer.restart() } } }
+    Connections { target: Osd;    function onTriggered()    { if (!root.fsActive && root.mode !== "center" && root.mode !== "walls" && root.mode !== "launcher" && root.mode !== "clipboard" && root.mode !== "power" && root.mode !== "timer" && root.mode !== "emoji" && root.mode !== "calendar" && root.mode !== "sysmon") { root.osdOn = true; osdTimer.restart() } } }
     Connections { target: Media;  function onTrackChanged() { if (!Config.mediaPeek || root.fsActive) return; root.peekOn = true;  peekTimer.restart()  } }
     Connections {
         target: Notifs
@@ -212,7 +215,7 @@ PanelWindow {
     // ---- IPC: open / toggle / close a page ----
     Timer { id: ipcTimer; interval: Config.ipcTimeout; onTriggered: if (!root.hoverRaw && !centerView.typing) root.expanded = false }
     function openPage(p) {
-        if (["main", "center", "walls", "launcher", "clipboard", "power", "timer", "emoji", "calendar", "tray"].indexOf(p) < 0) p = "center"
+        if (["main", "center", "walls", "launcher", "clipboard", "power", "timer", "emoji", "calendar", "tray", "sysmon"].indexOf(p) < 0) p = "center"
         page = p
         expanded = true
         // modal pages and the tray stay open until you use them: the tray has no timeout,
@@ -340,6 +343,7 @@ PanelWindow {
         PowerView     { id: powerView;     island: root }
         EmojiView     { id: emojiView;     island: root }
         CalendarView  { id: calendarView;  island: root }
+        SysView       { id: sysView;       island: root }
         TrayView      { id: trayView;      island: root }
 
         // ===== shared cover art (morphs between all layouts) =====

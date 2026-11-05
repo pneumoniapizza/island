@@ -121,6 +121,11 @@
     "firstDay": 1,
     "weekNumbers": false
   },
+  "sysmon": {
+    "interval": 1500,
+    "processes": 5,
+    "colors": true
+  },
   "tray": {
     "columns": 6,
     "hidePassive": false

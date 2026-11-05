@@ -10,6 +10,7 @@ It lives at the top of the screen and grows into whatever you need:
 - **Clipboard**: searchable history (cliphist)
 - **Emoji + symbols**: searchable picker with categories, recents, and math / arrows / currency / Greek
 - **Calendar**: month view with week numbers, day-of-year and "in N days"
+- **System monitor**: CPU graph + temperature, memory / disk / GPU rings, network speed and top processes (only polls while open)
 - **Tray**: StatusNotifier icons; right-click menus open inside the island
 - **Wallpapers**: endless horizontal strip, plus live matugen controls (scheme, contrast, accent)
 
@@ -25,15 +26,15 @@ island/
 ├── settings.json           all user settings (hot-reloaded)
 ├── config/                 Config (reads settings.json), Theme (matugen colours)
 ├── services/               state + system access, no UI: Apps, Clip, Clock, Controls,
-│                           Media, Notifs, Osd, Power, Ui, Wallpapers, Emoji, EmojiData
+│                           Media, Notifs, Osd, Power, Sys, Ui, Wallpapers, Emoji, EmojiData
 ├── components/             reusable bits: Txt, Icon, IconButton, Toggle, VSlider,
-│                           Marquee, Art, Equalizer, View, PillToggle, HSlider, Battery, Tile, LineSlider, VSlider, NotifItem
+│                           Marquee, Art, Equalizer, View, PillToggle, HSlider, Battery, Tile, LineSlider, VSlider, NotifItem, Card, Ring, RingTile, Segmented, Spark
 ├── modules/island/
 │   ├── Island.qml          the window: state, timers, the morphing pill
 │   └── views/              one file per thing the pill can show:
 │       Idle, Media, Peek, Osd, Notif, Hub, Player,
-│       Center, Power, Wallpaper, Launcher, Clipboard, Emoji, Calendar, Tray
-├── ipc/                    one IPC target per file (island, launcher, clipboard, emoji, calendar, tray, center, power, wallpaper)
+│       Center, Power, Wallpaper, Launcher, Clipboard, Emoji, Calendar, Tray, Sys
+├── ipc/                    one IPC target per file (island, launcher, clipboard, emoji, calendar, tray, sysmon, center, power, wallpaper)
 ├── contrib/                matugen colour template
 ├── nix/ flake.nix package.nix   Nix packaging + NixOS / Home Manager modules
 ```
@@ -133,6 +134,7 @@ Applying any wallpaper from the switcher regenerates it. Until then you get buil
 | Emoji from the launcher | type `:smile` (or `:smile:`) in the launcher; `:` alone shows recents; `Enter` copies |
 | Emoji / symbols | `emoji toggle`, type to search, arrows / `Tab` (categories), `Enter` copies |
 | Calendar | `calendar toggle`, or tap the clock on the hover state; `h j k l` days, `H L` months, `t` today |
+| System monitor | `sysmon toggle`; `s` / `Tab` or click the CPU / MEM header switches the process sort, `Esc` / `q` closes |
 | Tray | `tray toggle`; click = activate, right click = menu, middle click = secondary action |
 | Power menu | `power toggle`, then a click, or `l` `o` `s` `r` `p`, `Enter` |
 | Change wallpaper | `wallpaper toggle`, arrows / `h` `l`, `Enter` |
@@ -191,6 +193,7 @@ island ipc call clipboard  toggle | open | close | wipe
 island ipc call emoji      toggle | open | close | clearRecent
 island ipc call calendar   toggle | open | close
 island ipc call tray       toggle | open | close
+island ipc call sysmon     toggle | open | close
 island ipc call center     toggle | open | close
 island ipc call wallpaper  toggle | open | close | next | prev | random | restore | refresh
 island ipc call wallpaper  set /path/to/img.png
@@ -229,6 +232,7 @@ Every key is optional. On Nix use `programs.island.settings.<section>.<key>` ins
 | `clipboard` | `width`, `rows`, `maxItems`, `placeholder`, `watch` |
 | `emoji` | `width`, `columns`, `rows`, `placeholder`, `recentMax`, `typeAfterCopy` (also types the pick; needs `wtype`) |
 | `calendar` | `firstDay` (0 = Sunday, 1 = Monday ...), `weekNumbers` |
+| `sysmon` | `interval` (ms between samples, default 1500), `processes` (process chips, 0-6, 0 hides them), `colors` (per-metric accents rotated from your matugen primary; `false` = primary only) |
 | `tray` | `columns`, `hidePassive` |
 | `keys` | `vim`, `launcherStartNormal` |
 

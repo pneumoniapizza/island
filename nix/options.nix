@@ -163,6 +163,11 @@ rec {
         firstDay = opt types.int 1 "First day of the week: 0 = Sunday, 1 = Monday ...";
         weekNumbers = opt types.bool false "Show ISO week numbers.";
       };
+      sysmon = {
+        interval = opt types.int 1500 "Milliseconds between CPU / memory / network samples.";
+        processes = opt types.int 5 "Rows in the top-processes list (0 hides it).";
+        colors = opt types.bool true "Per-metric accents derived from the matugen primary; false uses the primary everywhere.";
+      };
       tray = {
         columns = opt types.int 6 "Icons per row.";
         hidePassive = opt types.bool false "Hide tray items that report a passive status.";

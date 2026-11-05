@@ -13,4 +13,5 @@ Scope {
     EmojiIpc {}
     CalendarIpc {}
     TrayIpc {}
+    SysmonIpc {}
 }

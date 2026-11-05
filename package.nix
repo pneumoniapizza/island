@@ -22,7 +22,9 @@ let
     brightnessctl   # brightness slider + OSD
     networkmanager  # nmcli: Wi-Fi toggle / network name
     systemd         # loginctl
-    coreutils
+    coreutils       # df, cat
+    procps          # top: sysmon process list
+    gawk            # sysmon process list
     findutils       # find: wallpaper scan
     cliphist        # clipboard history
     wl-clipboard    # wl-copy / wl-paste
