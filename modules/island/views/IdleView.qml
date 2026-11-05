@@ -48,13 +48,10 @@ View {
             }
         }
 
-        Icon {
+        Battery {
             anchors.verticalCenter: parent.verticalCenter
             visible: island.pillBattery
-            name: island.batteryIcon
             size: 17
-            filled: true
-            color: island.batteryColor
         }
 
         // minimal iOS-style privacy dot (orange = mic, green = camera, red = screen record)

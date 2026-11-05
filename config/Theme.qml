@@ -8,8 +8,12 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    // island body: always solid black
-    readonly property color bg: "#000000"
+    // light palette = matugen is in light mode (surface is light). Auto-detected, no setting.
+    readonly property bool light: Qt.color(ad.surface).hslLightness > 0.5
+
+    // island body: solid black in dark mode, the matugen surface in light mode
+    readonly property color bg: light ? surface : "#000000"
+    readonly property color bgClear: Qt.rgba(bg.r, bg.g, bg.b, 0)   // for fades (avoids a grey fringe)
 
     readonly property color surface: ad.surface
     readonly property color surfaceHi: ad.surfaceHi

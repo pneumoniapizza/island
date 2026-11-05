@@ -52,13 +52,10 @@ View {
                         font.pixelSize: 11
                         color: Theme.fgDim
                     }
-                    Icon {
+                    Battery {
                         anchors.verticalCenter: parent.verticalCenter
                         visible: island.pillBattery
-                        name: island.batteryIcon
                         size: 15
-                        filled: true
-                        color: island.batteryColor
                     }
                 }
             }

@@ -29,7 +29,7 @@ Item {
     ClippingRectangle {
         anchors.fill: parent
         radius: 28
-        color: ma.containsMouse ? Theme.surfaceHiest : Theme.surfaceHi
+        color: Qt.rgba(Theme.fg.r, Theme.fg.g, Theme.fg.b, ma.containsMouse ? 0.13 : 0.08)
         Behavior on color { ColorAnimation { duration: 140 } }
 
         // fill: rounded cap on top, the bottom is clipped away by the card

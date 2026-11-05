@@ -52,6 +52,16 @@ View {
     }
     function wifiIcon(sig) { return sig > 75 ? "signal_wifi_4_bar" : sig > 50 ? "network_wifi_3_bar" : sig > 25 ? "network_wifi_2_bar" : "network_wifi_1_bar" }
     readonly property int gap: 10
+
+    // "1h 20m left" / "35m to full" / "Charging" for the header capsule
+    readonly property string batStatus: {
+        const d = UPower.displayDevice
+        if (!d || !d.isPresent) return ""
+        const fmt = sec => { const m = Math.round(sec / 60); return m >= 60 ? Math.floor(m / 60) + "h " + (m % 60) + "m" : m + "m" }
+        if (d.state === UPowerDeviceState.FullyCharged) return "Charged"
+        if (d.state === UPowerDeviceState.Charging) return d.timeToFull > 0 ? fmt(d.timeToFull) + " to full" : "Charging"
+        return d.timeToEmpty > 0 ? fmt(d.timeToEmpty) + " left" : ""
+    }
     pad: 14
     active: island.mode === "center"
     dims: island.sizes.center
@@ -64,211 +74,150 @@ View {
         dims: ({ w: view.width, h: view.height })
         active: view.sub === ""
 
-        // ---- row 1: Wi-Fi, Focus, lock ----
-        RowLayout {
-            x: 0; y: 14
-            width: parent.width
-            height: 60
-            spacing: view.gap
-            PillToggle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+        // ---- header: battery (plain) left, lock + power right ----
+        Row {
+            x: 2; y: 10
+            height: 34
+            spacing: 9
+            visible: Config.showBattery && island.hasBattery
+            Battery { anchors.verticalCenter: parent.verticalCenter; size: 19; showPercent: true }
+            Txt {
+                anchors.verticalCenter: parent.verticalCenter
+                visible: view.batStatus !== ""
+                text: view.batStatus
+                font.pixelSize: 11
+                color: Theme.fgDim
+            }
+        }
+        Row {
+            x: parent.width - width; y: 10
+            spacing: 2
+            IconButton {
+                implicitWidth: 34; implicitHeight: 34
+                name: "search"; size: 18; filled: false
+                onClicked: island.page = "launcher"
+            }
+            IconButton {
+                implicitWidth: 34; implicitHeight: 34
+                name: "lock"; size: 18; filled: false
+                onClicked: { island.closeIsland(); Power.run("lock") }
+            }
+            IconButton {
+                implicitWidth: 34; implicitHeight: 34
+                name: "power_settings_new"; size: 18; filled: false
+                onClicked: island.page = "power"
+            }
+        }
+
+        // ---- control grid: 2 x 2 square tiles + two tall sliders (iOS style) ----
+        GridLayout {
+            id: tileGrid
+            x: 0; y: 54
+            width: parent.width - 150 - view.gap
+            height: 210
+            columns: 2
+            rowSpacing: view.gap
+            columnSpacing: view.gap
+            Tile {
+                Layout.fillWidth: true; Layout.fillHeight: true
+                Layout.preferredWidth: 1; Layout.preferredHeight: 1
                 icon: Controls.wifi ? "wifi" : "wifi_off"
                 label: "Wi-Fi"
-            more: true
-            onMoreClicked: view.openSub("wifi")
+                more: true
+                onMoreClicked: view.openSub("wifi")
                 subtitle: !Controls.wifi ? "Off" : (Controls.wifiName !== "" ? Controls.wifiName : "On")
                 active: Controls.wifi
                 onClicked: Controls.toggleWifi()
             }
-            PillToggle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+            Tile {
+                Layout.fillWidth: true; Layout.fillHeight: true
+                Layout.preferredWidth: 1; Layout.preferredHeight: 1
+                icon: Controls.btOn ? "bluetooth" : "bluetooth_disabled"
+                label: "Bluetooth"
+                more: true
+                onMoreClicked: view.openSub("bt")
+                subtitle: !Controls.btAvailable ? "N/A" : (!Controls.btOn ? "Off" : (Controls.btDevice !== "" ? Controls.btDevice : "On"))
+                active: Controls.btOn
+                available: Controls.btAvailable
+                onClicked: Controls.toggleBluetooth()
+            }
+            Tile {
+                Layout.fillWidth: true; Layout.fillHeight: true
+                Layout.preferredWidth: 1; Layout.preferredHeight: 1
                 icon: "do_not_disturb_on"
                 label: "Focus"
                 subtitle: Notifs.dnd ? "On" : "Off"
                 active: Notifs.dnd
                 onClicked: Notifs.dnd = !Notifs.dnd
             }
-            IconButton {
-                Layout.preferredWidth: 60
-                Layout.preferredHeight: 60
-                implicitWidth: 60
-                implicitHeight: 60
-                name: "lock"; size: 22; filled: false
-                fill: Theme.card
-                onClicked: { island.closeIsland(); Power.run("lock") }
-            }
-        }
-
-        // ---- row 2: Bluetooth, Awake, power menu ----
-        RowLayout {
-            x: 0; y: 84
-            width: parent.width
-            height: 60
-            spacing: view.gap
-            PillToggle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                icon: Controls.btOn ? "bluetooth" : "bluetooth_disabled"
-                label: "Bluetooth"
-            more: true
-            onMoreClicked: view.openSub("bt")
-                subtitle: !Controls.btAvailable ? "N/A" : (!Controls.btOn ? "Off" : (Controls.btDevice !== "" ? Controls.btDevice : "On"))
-                active: Controls.btOn
-                available: Controls.btAvailable
-                onClicked: Controls.toggleBluetooth()
-            }
-            PillToggle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+            Tile {
+                Layout.fillWidth: true; Layout.fillHeight: true
+                Layout.preferredWidth: 1; Layout.preferredHeight: 1
                 icon: "coffee"
                 label: "Awake"
                 subtitle: Controls.keepAwake ? "On" : "Off"
                 active: Controls.keepAwake
                 onClicked: Controls.keepAwake = !Controls.keepAwake
             }
-            IconButton {
-                Layout.preferredWidth: 60
-                Layout.preferredHeight: 60
-                implicitWidth: 60
-                implicitHeight: 60
-                name: "power_settings_new"; size: 22; filled: false
-                fill: Theme.card
-                onClicked: island.page = "power"
-            }
         }
 
-        // ---- sound ----
-        Rectangle {
-            x: 0; y: 154
-            width: parent.width; height: 72
-            radius: 24
-            color: Theme.card
-
-            Txt { x: 14; y: 9; text: "Sound"; font.pixelSize: 13; font.weight: Font.DemiBold }
-            Rectangle {
-                id: volPill
-                anchors.right: parent.right; anchors.rightMargin: 12
-                y: 8
-                width: Math.max(24, volTxt.implicitWidth + 16); height: 24; radius: 12
-                color: Theme.bg
-                Txt {
-                    id: volTxt
-                    anchors.centerIn: parent
-                    text: Controls.muted ? "Muted" : Math.round(Controls.volume * 100)
-                    font.pixelSize: 11
-                    font.weight: Font.Medium
-                    color: Theme.fgDim
-                }
-            }
-            HSlider {
-                id: volSlider
-                x: 12; y: 38
-                width: parent.width - 24; height: 24
-                icon: Controls.volumeIcon
-                value: Controls.volume
-                dimmed: Controls.muted
-                iconAction: true
-                onMoved: v => Controls.setVolume(v)
-                onIconClicked: Controls.toggleMute()
-            }
+        VSlider {
+            id: volSlider
+            x: parent.width - 150; y: 54
+            width: 70; height: 210
+            icon: Controls.volumeIcon
+            value: Controls.volume
+            dimmed: Controls.muted
+            iconAction: true
+            onMoved: v => Controls.setVolume(v)
+            onIconClicked: Controls.toggleMute()
+        }
+        VSlider {
+            id: briSlider
+            x: parent.width - 70; y: 54
+            width: 70; height: 210
+            icon: "light_mode"
+            value: Controls.brightness
+            onMoved: v => Controls.setBrightness(v)
         }
 
-        // ---- display ----
-        Rectangle {
-            x: 0; y: 236
-            width: parent.width; height: 72
-            radius: 24
-            color: Theme.card
-
-            Txt { x: 14; y: 9; text: "Display"; font.pixelSize: 13; font.weight: Font.DemiBold }
-            Rectangle {
-                anchors.right: parent.right; anchors.rightMargin: 12
-                y: 8
-                width: Math.max(24, briTxt.implicitWidth + 16); height: 24; radius: 12
-                color: Theme.bg
-                Txt {
-                    id: briTxt
-                    anchors.centerIn: parent
-                    text: Math.round(Controls.brightness * 100)
-                    font.pixelSize: 11
-                    font.weight: Font.Medium
-                    color: Theme.fgDim
-                }
-            }
-            HSlider {
-                id: briSlider
-                x: 12; y: 38
-                width: parent.width - 24; height: 24
-                icon: "light_mode"
-                value: Controls.brightness
-                onMoved: v => Controls.setBrightness(v)
-            }
-        }
-
-        // ---- notifications ----
+        // ---- notifications: one card, same wash as the tiles ----
         Rectangle {
             id: notifCard
-            x: 0; y: 318
+            x: 0; y: 274
             width: parent.width
-            height: view.height - y - 14
-            radius: 24
-            color: Theme.card
+            height: view.height - 14 - y
+            radius: 26
+            color: Qt.rgba(Theme.fg.r, Theme.fg.g, Theme.fg.b, 0.08)
 
-            Txt { x: 16; y: 12; text: "Notifications"; font.pixelSize: 12; color: Theme.fgDim }
-
-            // right side of the header: battery, "Clear", page shortcuts
-            Row {
+            Txt { x: 18; y: 14; text: "Notifications"; font.pixelSize: 13; font.weight: Font.DemiBold }
+            Item {
                 anchors.right: parent.right; anchors.rightMargin: 10
-                y: 6
-                height: 28
-                spacing: 2
-
-                Row {
-                    anchors.verticalCenter: parent.verticalCenter
-                    visible: Config.showBattery && island.hasBattery
-                    spacing: 3
-                    rightPadding: 8
-                    Icon { anchors.verticalCenter: parent.verticalCenter; name: island.batteryIcon; size: 16; filled: true; color: island.batteryColor }
-                    Txt {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: UPower.displayDevice ? Math.round(UPower.displayDevice.percentage * 100) + "%" : ""
-                        font.pixelSize: 11
-                        font.weight: Font.Medium
-                        color: Theme.fgDim
-                    }
+                y: 10
+                visible: Notifs.history.length > 0
+                width: clearTxt.implicitWidth + 16; height: 24
+                Txt { id: clearTxt; anchors.centerIn: parent; text: "Clear"; font.pixelSize: 11; font.weight: Font.Medium; color: Theme.fgDim }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: Notifs.clearHistory()
                 }
-                Item {
-                    anchors.verticalCenter: parent.verticalCenter
-                    visible: Notifs.history.length > 0
-                    width: clearTxt.implicitWidth + 16; height: 24
-                    Txt { id: clearTxt; anchors.centerIn: parent; text: "Clear"; font.pixelSize: 11; font.weight: Font.Medium; color: Theme.fgDim }
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: Notifs.clearHistory()
-                    }
-                }
-                IconButton { anchors.verticalCenter: parent.verticalCenter; implicitWidth: 28; implicitHeight: 28; name: "timer"; size: 17; filled: Countdown.active; color: Countdown.active ? Theme.primary : Theme.fg; onClicked: island.page = "timer" }
-                IconButton { anchors.verticalCenter: parent.verticalCenter; implicitWidth: 28; implicitHeight: 28; name: "search"; size: 17; filled: false; onClicked: island.page = "launcher" }
-                IconButton { anchors.verticalCenter: parent.verticalCenter; implicitWidth: 28; implicitHeight: 28; name: "content_paste"; size: 17; filled: false; onClicked: island.page = "clipboard" }
-                IconButton { anchors.verticalCenter: parent.verticalCenter; implicitWidth: 28; implicitHeight: 28; name: "wallpaper"; size: 17; filled: false; onClicked: island.page = "walls" }
-                IconButton { anchors.verticalCenter: parent.verticalCenter; implicitWidth: 28; implicitHeight: 28; name: "emoji_emotions"; size: 17; filled: false; onClicked: island.page = "emoji" }
-                IconButton { anchors.verticalCenter: parent.verticalCenter; implicitWidth: 28; implicitHeight: 28; name: "calendar_month"; size: 17; filled: false; onClicked: island.page = "calendar" }
-                IconButton { anchors.verticalCenter: parent.verticalCenter; implicitWidth: 28; implicitHeight: 28; name: "widgets"; size: 17; filled: false; onClicked: island.page = "tray" }
             }
 
             Txt {
-                x: 16; y: 44
+                x: 0; y: 40
+                width: parent.width; height: parent.height - 40
                 visible: Notifs.history.length === 0
                 text: "No notifications"
-                font.pixelSize: 14
+                font.pixelSize: 12
+                color: Theme.fgDim
+                opacity: 0.7
+                horizontalAlignment: Text.AlignHCenter
             }
 
             ListView {
                 id: notifList
-                x: 8; y: 40
+                x: 8; y: 42
                 width: parent.width - 16
                 height: parent.height - y - 6
                 visible: Notifs.history.length > 0

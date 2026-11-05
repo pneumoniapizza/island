@@ -24,7 +24,7 @@ ShellRoot {
     WlSessionLock {
         locked: Lock.locked
         WlSessionLockSurface {
-            color: "#000000"
+            color: Theme.bg
             LockView { anchors.fill: parent }
         }
     }

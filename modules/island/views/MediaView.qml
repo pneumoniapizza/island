@@ -46,13 +46,10 @@ View {
                 color: Countdown.running ? Theme.primary : Theme.fgDim
             }
         }
-        Icon {
+        Battery {
             anchors.verticalCenter: parent.verticalCenter
             visible: island.pillBattery
-            name: island.batteryIcon
             size: 17
-            filled: true
-            color: island.batteryColor
         }
         Rectangle {
             visible: Privacy.active
