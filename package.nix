@@ -7,6 +7,8 @@
 , networkmanager
 , systemd
 , coreutils
+, procps
+, gawk
 , findutils
 , cliphist
 , wl-clipboard
